@@ -12,7 +12,7 @@ Notebook friendly Spotify downloader.
 
 ### 2. Setup Google Drive
 
-In your Google Drive root folder, create a file called `.env-spotify-client` that looks like this example. 
+In your Google Drive root folder, create a file called `.env-spotify-client` that looks like the example below. 
 Make sure to replace the client id and secret with your app's credentials. 
 
 ```text
