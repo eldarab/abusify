@@ -12,8 +12,8 @@ from abusify import Abusify, EntityType
 )
 def test_download_track(tmp_path):
     ab = Abusify(out_dir=tmp_path)
-    path = ab.download("Come Together", EntityType.TRACK)
-    assert path.exists()
+    new_path = ab.download("Come Together", EntityType.TRACK)
+    assert new_path.exists()
 
 
 @pytest.mark.integration
@@ -23,6 +23,5 @@ def test_download_track(tmp_path):
 )
 def test_download_album(tmp_path):
     ab = Abusify(out_dir=tmp_path)
-    # Query resolved as album
-    paths = ab.download("Abbey Road", EntityType.ALBUM)
-    assert len(paths) > 0 and all(p.exists() for p in paths)
+    new_paths = ab.download("Abbey Road", EntityType.ALBUM)
+    assert len(new_paths) > 0 and all(p.exists() for p in new_paths)

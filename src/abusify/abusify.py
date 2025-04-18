@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional, List, Union
+from typing import Optional
 
 from .downloader import download_spotify_url
 from .organizer import organize_paths
@@ -18,20 +18,17 @@ class Abusify:
             self,
             query: str,
             entity: Optional[EntityType] = None,
-    ) -> Union[Path, List[Path]]:
-        """
-        1. Resolve query to a Spotify URL
-        2. Download audio via spotDL
-        3. Organize files into artist/album folders
-        """
+    ):
         url = resolve_url(query) if entity is None else resolve_url(query, entity)
         if url is None:
             raise RuntimeError(f"No Spotify result for {query!r}")
 
         paths = download_spotify_url(url, out_dir=self.out_dir)
-        # normalize to list
+
+        # Normalise to list
         if isinstance(paths, (list, tuple)):
-            organize_paths(paths, self.out_dir)
+            new_paths = organize_paths(paths, self.out_dir)
+            return new_paths
         else:
-            organize_paths([paths], self.out_dir)
-        return paths
+            new_path = organize_paths([paths], self.out_dir)[0]
+            return new_path
