@@ -5,7 +5,7 @@ from typing import List, Optional, Union
 from .exceptions import AbusifyException
 from .downloader import download_spotify_url
 from .organizer import organize_paths
-from .spotify import EntityType, resolve_url
+from .resolver import EntityType, resolve_url
 
 logger = logging.getLogger(__name__)
 

@@ -47,6 +47,6 @@ def stub_artist_url(monkeypatch, expected_beatles_artist_id):
                 "playlists": {},
             }
 
-    from abusify import spotify
+    from abusify import resolver
 
     monkeypatch.setattr(spotify, "_client", lambda: _Dummy())
