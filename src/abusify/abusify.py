@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional, Union
 
 from .downloader import download_spotify_url
 from .organizer import organize_paths
@@ -18,7 +18,17 @@ class Abusify:
             self,
             query: str,
             entity: Optional[EntityType] = None,
-    ):
+    ) -> Union[Path, List[Path]]:  # ← NEW type hint
+        """
+        Resolve → download → organize.
+
+        Returns
+        -------
+        Path
+            when a single track is downloaded.
+        List[Path]
+            for album / artist / playlist downloads.
+        """
         url = resolve_url(query) if entity is None else resolve_url(query, entity)
         if url is None:
             raise RuntimeError(f"No Spotify result for {query!r}")
