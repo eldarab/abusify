@@ -66,7 +66,7 @@ def _run_spotdl(urls: List[str], out_dir: Path) -> List[Path]:
         )
         assert process.stdout is not None
         for line in process.stdout:
-            logger.info("[spotdl %s] %s", url, line.rstrip())
+            logger.info("[spotdl] %s", line.rstrip())
 
         return_code = process.wait(timeout=300)
         if return_code != 0:
