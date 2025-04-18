@@ -44,7 +44,7 @@ def _build_command(url: str, out_dir: Path) -> List[str]:
 
 def _run_spotdl(urls: List[str], out_dir: Path) -> List[Path]:
     """
-    Download one or more URLs via spotdl CLI.
+    Download one or more URLs via spotdl CLI, streaming logs live.
     Returns list of files that now exist.
     """
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -52,34 +52,26 @@ def _run_spotdl(urls: List[str], out_dir: Path) -> List[Path]:
 
     for url in urls:
         cmd = _build_command(url, out_dir)
-        # run without automatic text decoding; capture raw bytes
-        completed = subprocess.run(
+        logger.info("Starting spotdl for %s", url)
+
+        # Stream stdout and stderr combined, decode as utf-8, ignoring errors
+        process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            timeout=300,
+            stderr=subprocess.STDOUT,
+            bufsize=1,
+            text=True,
+            encoding='utf-8',
+            errors='ignore',
         )
-        raw_out = completed.stdout  # bytes
-        raw_err = completed.stderr  # bytes
+        assert process.stdout is not None
+        for line in process.stdout:
+            logger.info("[spotdl %s] %s", url, line.rstrip())
 
-        # decode for human-readable logs, ignoring any bad bytes
-        decoded_out = raw_out.decode('utf-8', errors='ignore')
-        decoded_err = raw_err.decode('utf-8', errors='ignore')
-
-        # log the decoded output
-        logger.info("spotdl output for %s:\n%s", url, decoded_out)
-        if decoded_err:
-            logger.error("spotdl errors for %s:\n%s", url, decoded_err)
-
-        if completed.returncode != 0:
-            # raise with decoded logs; raw_out/raw_err still available for dead-letter
-            error_msg = (
-                f"spotdl failed for {url}\n"
-                f"--- decoded stdout ---\n{decoded_out}\n"
-                f"--- decoded stderr ---\n{decoded_err}"
-            )
-            logger.error(error_msg)
-            raise RuntimeError(error_msg)
+        return_code = process.wait(timeout=300)
+        if return_code != 0:
+            logger.error("spotdl failed for %s with exit code %d", url, return_code)
+            raise RuntimeError(f"spotdl failed for {url} (exit code {return_code})")
 
     paths_after = set(out_dir.glob("**/*"))
     return [p for p in paths_after - paths_before if p.is_file()]
