@@ -5,7 +5,7 @@ import subprocess
 import sys
 from pathlib import Path
 from typing import List
-
+from .exceptions import AbusifyException
 from dotenv import load_dotenv
 
 # Initialize .env vars for SPOTIFY_CLIENT_ID/SECRET
@@ -35,6 +35,8 @@ def _build_command(url: str, out_dir: Path) -> List[str]:
         "spotdl",
         url,
         "--simple-tui",
+        "--log-level",
+        "DEBUG",
         "--output",
         str(out_dir / "{title}.{output-ext}"),
         "--ffmpeg",
@@ -71,7 +73,10 @@ def _run_spotdl(urls: List[str], out_dir: Path) -> List[Path]:
         return_code = process.wait(timeout=300)
         if return_code != 0:
             logger.error("spotdl failed for %s with exit code %d", url, return_code)
-            raise RuntimeError(f"spotdl failed for {url} (exit code {return_code})")
+            raise AbusifyException(
+                url,
+                f"spotdl failed for {url} (exit code {return_code})"
+            )
 
     paths_after = set(out_dir.glob("**/*"))
     return [p for p in paths_after - paths_before if p.is_file()]
