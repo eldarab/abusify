@@ -1,7 +1,7 @@
 [project]
 name = "abusify"
 version = "0.0.1"
-description = "Fetch Spotify metadata, grab audio via spotdl, and tidy it."
+description = "Notebook friendly Spotify downloder."
 authors = [{name = "Eldar Abraham", email = "eldar.abraham@gmail.com"}]
 dependencies = [
   "spotipy>=2,<3",
