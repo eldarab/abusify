@@ -1,0 +1,15 @@
+[project]
+name = "abusify"
+version = "0.0.1"
+description = "Fetch Spotify metadata, grab audio via spotdl, and tidy it."
+authors = [{name = "Eldar Abraham", email = "eldar.abraham@gmail.com"}]
+dependencies = [
+  "spotipy>=2,<3",
+  "python-dotenv>=1.0",
+  "spotdl>=4,<5",
+  "nest_asyncio>=1.5"
+]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
