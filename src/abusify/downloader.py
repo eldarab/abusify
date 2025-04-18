@@ -1,117 +1,78 @@
+"""
+downloader.py – robust helpers that shell out to `spotdl` CLI.
+
+Works identically in scripts and Jupyter notebooks
+(no event‑loop or rich.Live collisions).
+"""
 from __future__ import annotations
-
-import asyncio
 import os
+import subprocess
+import sys
 from pathlib import Path
-from typing import Iterable, List, Optional
+from typing import List, Optional
 
-import nest_asyncio
 from dotenv import load_dotenv
-from spotdl.download.downloader import Downloader
-from spotdl.types.album import Album
-from spotdl.types.artist import Artist
-from spotdl.types.playlist import Playlist
-from spotdl.types.song import Song
-from spotdl.utils.spotify import SpotifyClient, SpotifyError
 
-load_dotenv()
+load_dotenv()  # for SPOTIFY_CLIENT_ID/SECRET
 
 
-def _ensure_event_loop_is_nestable() -> None:
+# ------------------------------------------------------------------ #
+# Shared helpers
+# ------------------------------------------------------------------ #
+def _build_command(url: str, out_dir: Path) -> List[str]:
     """
-    In Jupyter/IPython an event loop is already running.
-    `spotdl` will call `asyncio.run`, which normally fails.
-    `nest_asyncio.apply()` makes nested loops legal.
-    Safe to call repeatedly.
+    Return the spotdl CLI command for a single *entity* URL.
+
+    The output template reproduces `{artist} - {title}.ext` in caller dir.
     """
-    try:
-        asyncio.get_running_loop()
-    except RuntimeError:
-        # No loop yet → script mode; nothing to patch.
-        return
-    else:
-        # We're inside a live loop (likely a notebook)
-        nest_asyncio.apply()
+    return [
+        sys.executable, "-m", "spotdl",
+        url,
+        "--output", str(out_dir / "{artists} - {title}.{output-ext}"),
+        "--ffmpeg", "ffmpeg",  # rely on PATH
+    ]
 
 
-def _ensure_spotify_client() -> None:
-    _ensure_event_loop_is_nestable()  # ← NEW
-
-    if getattr(SpotifyClient, "_client", None) is not None:
-        return
-    cid, secret = os.getenv("SPOTIFY_CLIENT_ID"), os.getenv("SPOTIFY_CLIENT_SECRET")
-    if not (cid and secret):
-        raise RuntimeError("Missing Spotify credentials.")
-    try:
-        SpotifyClient.init(client_id=cid, client_secret=secret, user_auth=False)
-    except SpotifyError as err:
-        if "already been initialized" not in str(err).lower():
-            raise
-
-
-def _make_downloader(out_dir: Path) -> Downloader:
-    settings = {
-        "output": str(out_dir / "{artists} - {title}.{output-ext}"),
-        "progress": False,  # ← avoids LiveError in loops
-    }
-    return Downloader(settings)
-
-
-def _download_many(songs: Iterable[Song], out_dir: Path) -> List[Path]:
+def _run_spotdl(urls: List[str], out_dir: Path) -> List[Path]:
     """
-    Core routine shared by all public helpers.
-    Returns paths for the songs that actually downloaded (skips None).
+    Download one or more URLs via spotdl CLI.
+    Returns list of files that now exist.
     """
-    dl = _make_downloader(out_dir)
-    results = dl.download_multiple_songs(list(songs))
-    return [path for _, path in results if path is not None]
-
-
-def download_song(url: str, *, out_dir: str | Path = "music") -> Optional[Path]:
-    """
-    Download a **single track** URL.  Return its path, or None on failure.
-    """
-    _ensure_spotify_client()
-    out_dir = Path(out_dir).expanduser().resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
+    paths_before = set(out_dir.glob("**/*"))
 
-    song = Song.from_url(url)
-    dl = _make_downloader(out_dir)
-    _, path = dl.download_song(song)
-    return path
+    for url in urls:
+        cmd = _build_command(url, out_dir)
+        completed = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True
+        )
+        if completed.returncode != 0:
+            raise RuntimeError(
+                f"spotdl failed for {url}\n--- stdout+stderr ---\n{completed.stdout}"
+            )
+
+    paths_after = set(out_dir.glob("**/*"))
+    return [p for p in paths_after - paths_before if p.is_file()]
+
+
+# ------------------------------------------------------------------ #
+# Public API
+# ------------------------------------------------------------------ #
+def download_song(url: str, *, out_dir: str | Path = "music") -> Optional[Path]:
+    paths = _run_spotdl([url], Path(out_dir).expanduser())
+    return paths[0] if paths else None
 
 
 def download_album(url: str, *, out_dir: str | Path = "music") -> List[Path]:
-    """
-    Download every track from an **album** URL.  Returns list of paths.
-    """
-    _ensure_spotify_client()
-    out_dir = Path(out_dir).expanduser().resolve()
-    out_dir.mkdir(parents=True, exist_ok=True)
-
-    album = Album.from_url(url)  # fetch_songs=True by default
-    return _download_many(album.songs, out_dir)
+    return _run_spotdl([url], Path(out_dir).expanduser())
 
 
 def download_artist(url: str, *, out_dir: str | Path = "music") -> List[Path]:
-    """
-    Download *all* songs from an **artist** URL (covers the artist’s albums).
-    """
-    _ensure_spotify_client()
-    out_dir = Path(out_dir).expanduser().resolve()
-    out_dir.mkdir(parents=True, exist_ok=True)
-
-    artist = Artist.from_url(url)  # yields songs across albums
-    return _download_many(artist.songs, out_dir)
+    return _run_spotdl([url], Path(out_dir).expanduser())
 
 
 def download_playlist(url: str, *, out_dir: str | Path = "music") -> List[Path]:
-    """
-    Download every track in a **playlist** URL.  Returns list of paths.
-    """
-    _ensure_spotify_client()
-    out_dir = Path(out_dir).expanduser().resolve()
-    out_dir.mkdir(parents=True, exist_ok=True)
-
-    playlist = Playlist.from_url(url)
-    return _download_many(playlist.songs, out_dir)
+    return _run_spotdl([url], Path(out_dir).expanduser())
