@@ -7,7 +7,7 @@ Notebook friendly Spotify downloader.
 ### 1. Create a Spotify App
 
 * Open a Spotify account.
-* Create a new Spotify app called *abusify* using this link `https://developer.spotify.com/dashboard/create`. 
+* Create a new Spotify app called *abusify* using this link [https://developer.spotify.com/dashboard/create](https://developer.spotify.com/dashboard/create). 
 * Copy the *Client ID* and *Client secret*, you will use them in the next step.
 
 ### 2. Setup Google Drive
