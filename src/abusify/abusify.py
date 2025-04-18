@@ -29,11 +29,16 @@ class Abusify:
         logger.info("Starting download for %r (entity=%s)", query, entity)
 
         # ── Step  1: resolve ─────────────────────────────────────────────
-        url = resolve_url(query) if entity is None else resolve_url(query, entity)
-        if url is None:
-            logger.error("No Spotify match found for %r", query)
-            return None
-        logger.info("Resolved %r → %s", query, url)
+        # If the user gave us a full Spotify URL, skip resolve_url()
+        if "spotify.com" in query:
+            url = query
+            logger.info("Received Spotify URL directly, skipping resolve → %s", url)
+        else:
+            url = resolve_url(query) if entity is None else resolve_url(query, entity)
+            if url is None:
+                logger.error("No Spotify match found for %r", query)
+                return None
+            logger.info("Resolved %r → %s", query, url)
 
         # ── Step  2: download (+retry) ───────────────────────────────────
         paths: List[Path] = []
