@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 from enum import Enum
-from typing import Literal
 
 import spotipy
 from dotenv import load_dotenv
@@ -13,6 +12,7 @@ load_dotenv()  # reads SPOTIFY_CLIENT_ID / SECRET from .env or environment
 
 class EntityType(str, Enum):
     """Allowed Spotify entity categories."""
+
     ARTIST = "artist"
     ALBUM = "album"
     TRACK = "track"

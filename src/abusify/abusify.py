@@ -15,9 +15,9 @@ class Abusify:
         self.out_dir = Path(out_dir).expanduser()
 
     def download(
-            self,
-            query: str,
-            entity: Optional[EntityType] = None,
+        self,
+        query: str,
+        entity: Optional[EntityType] = None,
     ) -> Union[Path, List[Path]]:  # ← NEW type hint
         """
         Resolve → download → organize.

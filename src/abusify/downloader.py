@@ -24,10 +24,14 @@ def _build_command(url: str, out_dir: Path) -> List[str]:
     The output template reproduces `{artist} - {title}.ext` in caller dir.
     """
     return [
-        sys.executable, "-m", "spotdl",
+        sys.executable,
+        "-m",
+        "spotdl",
         url,
-        "--output", str(out_dir / "{artists} - {title}.{output-ext}"),
-        "--ffmpeg", "ffmpeg",  # rely on PATH
+        "--output",
+        str(out_dir / "{artists} - {title}.{output-ext}"),
+        "--ffmpeg",
+        "ffmpeg",  # rely on PATH
     ]
 
 
@@ -42,10 +46,7 @@ def _run_spotdl(urls: List[str], out_dir: Path) -> List[Path]:
     for url in urls:
         cmd = _build_command(url, out_dir)
         completed = subprocess.run(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
         )
         if completed.returncode != 0:
             raise RuntimeError(
@@ -57,9 +58,7 @@ def _run_spotdl(urls: List[str], out_dir: Path) -> List[Path]:
 
 
 def download_spotify_url(
-        url: str,
-        *,
-        out_dir: str | Path = "music"
+    url: str, *, out_dir: str | Path = "music"
 ) -> Union[Optional[Path], List[Path]]:
     """
     Download *any* Spotify entity URL (track/album/artist/playlist).

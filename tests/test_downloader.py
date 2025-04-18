@@ -11,10 +11,10 @@ def test_download_wrapper(monkeypatch, tmp_path):
     captured = {}
 
     class _DummyDL:
-        def __init__(self, settings):             # noqa: D401, ANN001
+        def __init__(self, settings):  # noqa: D401, ANN001
             captured["settings"] = settings
 
-        def download_song(self, song):            # noqa: ANN001
+        def download_song(self, song):  # noqa: ANN001
             return song, dummy_mp3
 
     monkeypatch.setattr("abusify.downloader.Downloader", _DummyDL)

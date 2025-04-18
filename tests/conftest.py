@@ -40,8 +40,13 @@ def stub_artist_url(monkeypatch, expected_beatles_artist_id):
     class _Dummy:
         def search(self, q, type, limit):
             uri = f"spotify:artist:{expected_beatles_artist_id}"
-            return {"artists": {"items": [{"uri": uri}]},
-                    "albums": {}, "tracks": {}, "playlists": {}}
+            return {
+                "artists": {"items": [{"uri": uri}]},
+                "albums": {},
+                "tracks": {},
+                "playlists": {},
+            }
 
     from abusify import spotify
+
     monkeypatch.setattr(spotify, "_client", lambda: _Dummy())

@@ -28,8 +28,8 @@ def _metadata_for(file: Path) -> tuple[str, str, str]:
 
 
 def organize_paths(
-        paths: Iterable[Path],
-        root: str | Path = "music",
+    paths: Iterable[Path],
+    root: str | Path = "music",
 ) -> List[Path]:
     """
     Move files to:  root / <Album‑Artist> / <Album‑Name> / <filename>
