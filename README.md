@@ -74,5 +74,5 @@ app.download("שיר אהבה בדואי צליל מכוון", EntityType.TRACK)
 Download a direct link obtained from a Google or Spotify search:
 
 ```python
-app.download("https://open.spotify.com/track/35yPWAgABmbcHvS6u1m6Gh?si=9f35ca9f0b13448c")
+app.download("https://open.spotify.com/track/35yPWAgABmbcHvS6u1m6Gh")
 ```
