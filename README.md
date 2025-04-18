@@ -35,7 +35,7 @@ Execute this one-liner in the first cell of your notebook:
 
 ### 5. Setup `abusify`
 
-Execute this code in the second cell of your notebook.
+Execute this code in the second cell of your notebook:
 
 ```python
 from google.colab import drive
