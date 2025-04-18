@@ -12,7 +12,6 @@ def configure_logging(
     Prepare log directory, and configure root logger with console
     and file handlers via dictConfig.
     """
-    # ensure directory exists
     logs_dir.mkdir(parents=True, exist_ok=True)
 
     dictConfig({
@@ -37,6 +36,13 @@ def configure_logging(
                 "filename": str(logs_dir / log_filename),
                 "encoding": "utf-8",
             },
+        },
+        "loggers": {
+            "abusify": {
+                "handlers": ["console", "file"],
+                "level": level,
+                "propagate": False
+            }
         },
         "root": {
             "level": level,
