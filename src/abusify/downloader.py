@@ -1,24 +1,22 @@
-"""
-downloader.py – robust helpers that shell out to `spotdl` CLI.
-
-Works identically in scripts and Jupyter notebooks
-(no event‑loop or rich.Live collisions).
-"""
 from __future__ import annotations
-import os
+
 import subprocess
 import sys
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Union, Optional
 
 from dotenv import load_dotenv
 
+# accepted Spotify entity URL prefixes
+_KIND_PREFIXES = {
+    "track": "https://open.spotify.com/track/",
+    "album": "https://open.spotify.com/album/",
+    "artist": "https://open.spotify.com/artist/",
+    "playlist": "https://open.spotify.com/playlist/",
+}
 load_dotenv()  # for SPOTIFY_CLIENT_ID/SECRET
 
 
-# ------------------------------------------------------------------ #
-# Shared helpers
-# ------------------------------------------------------------------ #
 def _build_command(url: str, out_dir: Path) -> List[str]:
     """
     Return the spotdl CLI command for a single *entity* URL.
@@ -58,21 +56,25 @@ def _run_spotdl(urls: List[str], out_dir: Path) -> List[Path]:
     return [p for p in paths_after - paths_before if p.is_file()]
 
 
-# ------------------------------------------------------------------ #
-# Public API
-# ------------------------------------------------------------------ #
-def download_song(url: str, *, out_dir: str | Path = "music") -> Optional[Path]:
+def download_spotify_url(
+        url: str,
+        *,
+        out_dir: str | Path = "music"
+) -> Union[Optional[Path], List[Path]]:
+    """
+    Download *any* Spotify entity URL (track/album/artist/playlist).
+
+    Returns
+    -------
+    Path | None
+        for track URLs (single file)
+    List[Path]
+        for album/artist/playlist URLs (multiple files)
+    """
+    url = url.strip()
+    kind = next((k for k, p in _KIND_PREFIXES.items() if url.startswith(p)), None)
+    if kind is None:
+        raise ValueError("URL does not look like a Spotify track/album/artist/playlist")
+
     paths = _run_spotdl([url], Path(out_dir).expanduser())
-    return paths[0] if paths else None
-
-
-def download_album(url: str, *, out_dir: str | Path = "music") -> List[Path]:
-    return _run_spotdl([url], Path(out_dir).expanduser())
-
-
-def download_artist(url: str, *, out_dir: str | Path = "music") -> List[Path]:
-    return _run_spotdl([url], Path(out_dir).expanduser())
-
-
-def download_playlist(url: str, *, out_dir: str | Path = "music") -> List[Path]:
-    return _run_spotdl([url], Path(out_dir).expanduser())
+    return paths[0] if kind == "track" else paths
