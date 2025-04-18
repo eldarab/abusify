@@ -6,7 +6,7 @@ def configure_logging(
         *,
         logs_dir: Path = Path("logs"),
         level: str = "INFO",
-        log_filename: str = "app.log",
+        log_filename: str = "abusify.log",
 ) -> None:
     """
     Prepare log directory, and configure root logger with console
@@ -28,7 +28,7 @@ def configure_logging(
                 "class": "logging.StreamHandler",
                 "level": level,
                 "formatter": "standard",
-                "stream": "ext://sys.stderr",
+                "stream": "ext://sys.stdout",
             },
             "file": {
                 "class": "logging.FileHandler",
